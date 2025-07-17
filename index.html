@@ -1,113 +1,217 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Online Notepad</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Secure Online Notepad</title>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
       background-color: #f4f4f4;
-      padding: 40px;
-      max-width: 800px;
-      margin: auto;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
     }
 
-    h1 {
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: #ddd;
+    }
+
+    header {
       text-align: center;
-      color: #333;
+      padding: 20px;
+    }
+
+    #login, #notepadApp {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    #notepadApp {
+      display: none;
     }
 
     textarea {
       width: 100%;
-      height: 400px;
-      font-size: 16px;
+      height: 300px;
       padding: 15px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
+      font-size: 16px;
       border-radius: 6px;
+      box-sizing: border-box;
       resize: vertical;
-      margin-top: 20px;
+      border: 1px solid #ccc;
       background-color: #fff;
     }
 
-    .buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
+    .dark-mode textarea {
+      background-color: #2a2a2a;
+      color: #f4f4f4;
+      border-color: #444;
     }
 
     button {
-      padding: 12px 20px;
+      margin: 5px;
+      padding: 10px 18px;
       font-size: 16px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      color: #fff;
     }
 
-    .save-btn {
-      background-color: #28a745;
+    .green { background-color: #28a745; color: white; }
+    .red { background-color: #dc3545; color: white; }
+    .blue { background-color: #007bff; color: white; }
+    .gray { background-color: #6c757d; color: white; }
+
+    select, input[type="password"] {
+      padding: 10px;
+      font-size: 16px;
+      margin: 5px 0;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
     }
 
-    .clear-btn {
-      background-color: #dc3545;
-    }
-
-    button:hover {
-      opacity: 0.9;
+    .note-list {
+      margin-top: 10px;
     }
 
     footer {
       text-align: center;
-      margin-top: 40px;
-      color: #777;
+      margin-top: 30px;
       font-size: 14px;
+      color: #777;
     }
   </style>
 </head>
 <body>
 
-  <h1>📝 My Online Notepad</h1>
+  <header>
+    <h1>📝 Secure Online Notepad</h1>
+  </header>
 
-  <textarea id="notepad" placeholder="Start typing your notes here..."></textarea>
-
-  <div class="buttons">
-    <button class="save-btn" onclick="saveNote()">💾 Save Note</button>
-    <button class="clear-btn" onclick="clearNote()">🗑 Clear Note</button>
+  <!-- Login Screen -->
+  <div id="login">
+    <h2>🔐 Enter Password to Access</h2>
+    <input type="password" id="passwordInput" placeholder="Enter password..." />
+    <button class="blue" onclick="checkPassword()">Login</button>
+    <p id="loginError" style="color: red;"></p>
   </div>
 
-  <footer>
-    Your notes are saved locally in your browser. They won't be deleted unless you clear them.
-  </footer>
+  <!-- Notepad App -->
+  <div id="notepadApp">
+    <textarea id="noteArea" placeholder="Start typing your notes..."></textarea>
+
+    <div class="note-list">
+      <select id="noteSelector" onchange="loadSelectedNote()"></select>
+      <button class="green" onclick="createNewNote()">➕ New Note</button>
+      <button class="red" onclick="deleteNote()">🗑 Delete</button>
+    </div>
+
+    <div>
+      <button class="blue" onclick="downloadNote()">⬇️ Download</button>
+      <button class="gray" onclick="toggleDarkMode()">🌗 Toggle Dark Mode</button>
+    </div>
+
+    <footer>
+      💾 Notes auto-save as you type | Stored locally in your browser
+    </footer>
+  </div>
 
   <script>
-    const textarea = document.getElementById('notepad');
+    const PASSWORD = 'notepad123';
+    let currentNote = '';
 
-    // Load saved note on page load
-    window.onload = () => {
-      const saved = localStorage.getItem('myNotepad');
-      if (saved) {
-        textarea.value = saved;
+    function checkPassword() {
+      const input = document.getElementById('passwordInput').value;
+      const error = document.getElementById('loginError');
+      if (input === PASSWORD) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('notepadApp').style.display = 'block';
+        loadNotes();
+      } else {
+        error.textContent = '❌ Incorrect password.';
       }
-    };
-
-    // Save note to local storage
-    function saveNote() {
-      const note = textarea.value;
-      localStorage.setItem('myNotepad', note);
-      alert('✅ Note saved successfully!');
     }
 
-    // Clear note from local storage
-    function clearNote() {
-      if (confirm("Are you sure you want to clear your note?")) {
-        localStorage.removeItem('myNotepad');
-        textarea.value = '';
+    // Auto-save as you type
+    document.addEventListener('input', function () {
+      if (currentNote) {
+        const content = document.getElementById('noteArea').value;
+        localStorage.setItem(currentNote, content);
+        refreshNoteList();
       }
+    });
+
+    function createNewNote() {
+      const title = prompt("Enter name for your new note:");
+      if (title) {
+        localStorage.setItem(title, '');
+        currentNote = title;
+        document.getElementById('noteArea').value = '';
+        refreshNoteList();
+        document.getElementById('noteSelector').value = title;
+      }
+    }
+
+    function deleteNote() {
+      if (currentNote && confirm(`Delete "${currentNote}"?`)) {
+        localStorage.removeItem(currentNote);
+        currentNote = '';
+        document.getElementById('noteArea').value = '';
+        refreshNoteList();
+      }
+    }
+
+    function refreshNoteList() {
+      const selector = document.getElementById('noteSelector');
+      selector.innerHTML = '<option value="">-- Select Note --</option>';
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key.startsWith('darkMode')) {
+          const option = document.createElement('option');
+          option.value = key;
+          option.textContent = key;
+          selector.appendChild(option);
+        }
+      }
+      if (currentNote) selector.value = currentNote;
+    }
+
+    function loadSelectedNote() {
+      const selected = document.getElementById('noteSelector').value;
+      if (selected) {
+        currentNote = selected;
+        document.getElementById('noteArea').value = localStorage.getItem(selected) || '';
+      }
+    }
+
+    function downloadNote() {
+      if (!currentNote) return alert("❗ No note selected.");
+      const content = document.getElementById('noteArea').value;
+      const blob = new Blob([content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${currentNote}.txt`;
+      a.click();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    function loadNotes() {
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+      }
+      refreshNoteList();
     }
   </script>
-
 </body>
 </html>
