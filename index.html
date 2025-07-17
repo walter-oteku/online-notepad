@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Online Notepad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f4f4;
+      padding: 40px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    textarea {
+      width: 100%;
+      height: 400px;
+      font-size: 16px;
+      padding: 15px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      resize: vertical;
+      margin-top: 20px;
+      background-color: #fff;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .save-btn {
+      background-color: #28a745;
+    }
+
+    .clear-btn {
+      background-color: #dc3545;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #777;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📝 My Online Notepad</h1>
+
+  <textarea id="notepad" placeholder="Start typing your notes here..."></textarea>
+
+  <div class="buttons">
+    <button class="save-btn" onclick="saveNote()">💾 Save Note</button>
+    <button class="clear-btn" onclick="clearNote()">🗑 Clear Note</button>
+  </div>
+
+  <footer>
+    Your notes are saved locally in your browser. They won't be deleted unless you clear them.
+  </footer>
+
+  <script>
+    const textarea = document.getElementById('notepad');
+
+    // Load saved note on page load
+    window.onload = () => {
+      const saved = localStorage.getItem('myNotepad');
+      if (saved) {
+        textarea.value = saved;
+      }
+    };
+
+    // Save note to local storage
+    function saveNote() {
+      const note = textarea.value;
+      localStorage.setItem('myNotepad', note);
+      alert('✅ Note saved successfully!');
+    }
+
+    // Clear note from local storage
+    function clearNote() {
+      if (confirm("Are you sure you want to clear your note?")) {
+        localStorage.removeItem('myNotepad');
+        textarea.value = '';
+      }
+    }
+  </script>
+
+</body>
+</html>
